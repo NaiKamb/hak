@@ -22,49 +22,69 @@ def get_html(url):
 
 def get_last_page (html):
     soup = BeautifulSoup(html, 'lxml')
-    last_page0 = soup.find('div', class_= 'vm-pagination').find('ul').find_all('li')[-3].find('a').get('href')
+    last_page = soup.find('div', class_= 'vm-pagination').find_all('li')[-1].find('a').get('href')
     # last_page =last_page0.find('a').get('href')
     # return last_page
-    print(last_page0)
+    last = str(last_page).split(',')
+    last1 = str(last[-1]).split('-')
+    last2 = int(last1[-1])/100+1
+
+    return last2
+    #print(last2)
+
 
 def get_data(html):
     soup = BeautifulSoup(html, 'lxml')
+
     product_list = soup.find_all('div', class_="product")
-    
-
     for product in product_list:
-
-        title = product.find('a').attrs.get('title')
-        image = product.find('a').attrs.get('src')
-        price = product.find('span').text
+        
+        try:
+            title = product.find('span', class_='prouct_name').find('a').text
+        except:
+            title = ''
+        try:
+            price = product.find('span', class_='price').text
+        except:
+            price = ''
+        try:
+            image = 'https://enter.kg' + product.find('img').get('src').text
+        except:
+            image = ''
 
         product_dict = {'title': title,
                         'image': image,
                         'price': price}
             
-        write_to_csv(product_dict)
+        write_to_csv(product_dict)    
+
+    ''''''''''''''
+    # product_list = soup.find_all('div', class_="product")
+    
+
+    # for product in product_list:
+
+    #     title = product.find('a').attrs.get('title')
+    #     image = product.find('a').attrs.get('src')
+    #     price = product.find('span').text
+
+   
 
 def main():
-    notebook_url = 'https://enter.kg/computers/noutbuki_bishkek/'
+    notebook_url = 'https://enter.kg/computers/noutbuki_bishkek'
     html = get_html(notebook_url)
     get_data(html)
-    get_last_page(html)
+    end = get_last_page(html)
+    for i in range(2, int(end)):
+        url_with_page = notebook_url + 'results,' + f'{(i-1)*100+1}-{(i-1)*100}'
+        #print(url_with_page)
+        html = get_html(url_with_page)
+        get_data(html) 
     # ls = list.append(get_last_page (html))
     # for i in ls:
     #     url_with_page = 'https://enter.kg/' + i
     #     html = get_html(url_with_page)
     #     get_data(html) 
-    # urls = [notebook_url.format(x) for x in range (1, get_last_page+1)]
-
-    # page = 1
-    # while True:
-    #     get_url = notebook_url + '/' + str(page)
-    #     html = get_html(get_url)
-    #     get_data(html)
-    #     if get_last_page(get_html(get_url)) == 'Вперёд':
-    #         page += 1
-    #     else:
-    #         break
         
 with open('data.csv','w') as file:
     write_ = csv.writer(file)
